@@ -24,7 +24,7 @@ namespace ur_kinematics
         private double[] a;
         private double[] d;
         private List<double[][]> t_matrices = new List<double[][]>();
-        double[][] eye_matrix = new double[3][] 
+        double[][] eye_matrix = new double[3][]
         {
             new double[] {0,0,0},
             new double[] {0,0,0},
@@ -44,7 +44,7 @@ namespace ur_kinematics
         };
         matrix_math matrixM;
 
-        public robot_kinematics(RobotType type) 
+        public robot_kinematics(RobotType type)
         {
             switch (type)
             {
@@ -59,7 +59,7 @@ namespace ur_kinematics
             matrixM = new matrix_math();
         }
 
-        private double[][] get_homog_t(double[] in_vector) 
+        private double[][] get_homog_t(double[] in_vector)
         {
             double[][] out_transform = new double[4][]
             {
@@ -68,19 +68,19 @@ namespace ur_kinematics
                 new double[4]{0,0,0,0},
                 new double[4]{0,0,0,0}
             };
-            double[][] Rx = new double[3][]
+            double[][] Rz = new double[3][]
             {
                 new double[3]{ Math.Cos(in_vector[3]), -Math.Sin(in_vector[3]), 0},
                 new double[3]{ Math.Sin(in_vector[3]), Math.Cos(in_vector[3]), 0},
                 new double[3]{ 0, 0, 1}
             };
-            double[][] Ry= new double[3][]
+            double[][] Ry = new double[3][]
             {
                 new double[3]{ Math.Cos(in_vector[4]), 0, Math.Sin(in_vector[4])},
                 new double[3]{ 0, 1, 0},
                 new double[3]{ -Math.Sin(in_vector[4]), 0, Math.Cos(in_vector[4]) }
             };
-            double[][] Rz = new double[3][]
+            double[][] Rx = new double[3][]
             {
                 new double[3]{ 1, 0, 0},
                 new double[3]{ 0, Math.Cos(in_vector[5]), -Math.Sin(in_vector[5]) },
@@ -129,7 +129,7 @@ namespace ur_kinematics
 
 
 
-        private double[] get_pose_vector(double[][] homog_t) 
+        private double[] get_pose_vector(double[][] homog_t)
         {
             double rot_y = Math.Atan2(Math.Sqrt(Math.Pow(homog_t[2][1], 2) + Math.Pow(homog_t[2][0], 2)), -homog_t[2][0]);
             double rot_x = Math.Atan2(homog_t[0][0] / Math.Cos(rot_y), homog_t[1][0] / Math.Cos(rot_y));
@@ -178,49 +178,24 @@ namespace ur_kinematics
 
         //https://people.ohio.edu/williams/html/PDF/UniversalRobotKinematics.pdf
 
-        public double[][] inverse_kin(double[] endPoint) 
+        public double[][] inverse_kin(double[] endPoint)
         {
+            endPoint[3] = endPoint[3] * Math.PI / 180;
+            endPoint[4] = endPoint[4] * Math.PI / 180;
+            endPoint[5] = endPoint[5] * Math.PI / 180;
+
             double[][] jointAngles = new double[theta.Length][];
 
             double[][] endPoint_transform = new double[theta.Length][];
 
-            //for (int i = 0; i < theta.Length; i++)
-            //{
-            //    t_matrices.Add(DH_matrix(theta[i], alpha[i], a[i], d[i]));
-            //}
-            //var t01 = matrixM.MultiplyMatrices(t_matrices[0], t_matrices[1]);
-            //var t12 = matrixM.MultiplyMatrices(t_matrices[1], t_matrices[2]);
-            //var t23 = matrixM.MultiplyMatrices(t_matrices[2], t_matrices[3]);
-            //var t34 = matrixM.MultiplyMatrices(t_matrices[3], t_matrices[4]);
-            //var t45 = matrixM.MultiplyMatrices(t_matrices[4], t_matrices[5]);
-            //var t56 = matrixM.MultiplyMatrices(t_matrices[5], DH_matrix(0, 0, 0.2, 0));  //--> pro nastroj
-
-            //endPoint_transform = t_matrices[3]; //upravit na vstupni endpoint
-
-            //var t_mid = matrixM.MultiplyMatrices(matrixM.InvertMatrix(t01), endPoint_transform); //T
-            //double[][] t_rhs = matrixM.MultiplyMatrices(t_mid, matrixM.InvertMatrix(t56));
-
-            //var x6 = -t56[0][3];
-            //var y6 = t56[1][3];
-            //var d6 = t_rhs[1][3];
-
-            //double[] th12 = [-x6 + Math.Sqrt(y6 * y6 + x6 * x6 - d6 * d6) / (d6 - y6), -x6 - Math.Sqrt(y6 * y6 + x6 * x6 - d6 * d6) / (d6 - y6)];
-
-            //double[] theta1 = [2 * Math.Pow(Math.Tan(th12[0]), -1), 2 * Math.Pow(Math.Tan(th12[1]), -1)]; //THETA1 has 2 options
-
-            ////-----------
-
-            //double theta2 = Math.Atan2();
-            //var th2 = t_rhs[1][2];
-
             endPoint_transform = get_homog_t(endPoint);
-            var x6 = endPoint_transform[0][3];
+            var x6 = -endPoint_transform[0][3];
             var y6 = endPoint_transform[1][3];
             var d6 = d[3];
 
 
             double[] th12 = [-x6 + Math.Sqrt(y6 * y6 + x6 * x6 - d6 * d6) / (d6 - y6), -x6 - Math.Sqrt(y6 * y6 + x6 * x6 - d6 * d6) / (d6 - y6)];
-            double[] theta1 = [2 * Math.Pow(Math.Tan(th12[0]), -1), 2 * Math.Pow(Math.Tan(th12[1]), -1)]; //THETA1 has 2 options
+            double[] theta1 = [2 * Math.Atan(th12[0]), 2 * Math.Atan(th12[1])]; //THETA1 has 2 options
 
             //-----------------
 
@@ -233,10 +208,10 @@ namespace ur_kinematics
 
             //------------------
 
-            var th5_1_th0 = (endPoint_transform[1][0] * Math.Cos(theta1[0]) - endPoint_transform[0][0] * Math.Sin(theta1[0])) * Math.Cos(theta6[0]) - (endPoint_transform[0][1] * Math.Sin(theta1[0]) - endPoint_transform[1][1] * Math.Cos(theta1[0])) * Math.Sin(theta6[0]);
+            var th5_1_th0 = (endPoint_transform[1][0] * Math.Cos(theta1[0]) - endPoint_transform[0][0] * Math.Sin(theta1[0])) * Math.Cos(theta6[0]) + (endPoint_transform[0][1] * Math.Sin(theta1[0]) - endPoint_transform[1][1] * Math.Cos(theta1[0])) * Math.Sin(theta6[0]);
             var th5_2_th0 = endPoint_transform[0][2] * Math.Sin(theta1[0]) - endPoint_transform[1][2] * Math.Cos(theta1[0]);
 
-            var th5_1_th1 = (endPoint_transform[1][0] * Math.Cos(theta1[1]) - endPoint_transform[0][0] * Math.Sin(theta1[1])) * Math.Cos(theta6[1]) - (endPoint_transform[0][1] * Math.Sin(theta1[1]) - endPoint_transform[1][1] * Math.Cos(theta1[1])) * Math.Sin(theta6[1]);
+            var th5_1_th1 = (endPoint_transform[1][0] * Math.Cos(theta1[1]) - endPoint_transform[0][0] * Math.Sin(theta1[1])) * Math.Cos(theta6[1]) + (endPoint_transform[0][1] * Math.Sin(theta1[1]) - endPoint_transform[1][1] * Math.Cos(theta1[1])) * Math.Sin(theta6[1]);
             var th5_2_th1 = endPoint_transform[0][2] * Math.Sin(theta1[1]) - endPoint_transform[1][2] * Math.Cos(theta1[1]);
 
             double[] theta5 = [Math.Atan2(th5_1_th0, th5_2_th0), Math.Atan2(th5_1_th1, th5_2_th1)];
@@ -249,11 +224,11 @@ namespace ur_kinematics
             var B_1 = endPoint_transform[2][1] * Math.Cos(theta6[0]) + endPoint_transform[2][0] * Math.Sin(theta6[0]);
             var B_2 = endPoint_transform[2][1] * Math.Cos(theta6[1]) + endPoint_transform[2][0] * Math.Sin(theta6[1]);
 
-            var alp_1 = -endPoint_transform[3][0] * Math.Cos(theta1[0]) - endPoint_transform[3][1] * Math.Sin(theta1[0]) - d[5] * A_1;
-            var alp_2 = -endPoint_transform[3][0] * Math.Cos(theta1[1]) - endPoint_transform[3][1] * Math.Sin(theta1[1]) - d[5] * A_2;
+            var alp_1 = -endPoint_transform[0][3] * Math.Cos(theta1[0]) - endPoint_transform[1][3] * Math.Sin(theta1[0]) - d[4] * A_1;
+            var alp_2 = -endPoint_transform[0][3] * Math.Cos(theta1[1]) - endPoint_transform[1][3] * Math.Sin(theta1[1]) - d[4] * A_2;
 
-            var bet_1 = endPoint_transform[3][2] - d[5] * B_1;
-            var bet_2 = endPoint_transform[3][2] - d[5] * B_2;
+            var bet_1 = endPoint_transform[2][3] - d[4] * B_1;
+            var bet_2 = endPoint_transform[2][3] - d[4] * B_2;
 
             var E_1 = -2 * a[1] * bet_1;
             var E_2 = -2 * a[1] * bet_2;
@@ -261,8 +236,9 @@ namespace ur_kinematics
             var F_1 = -2 * a[1] * alp_1;
             var F_2 = -2 * a[1] * alp_2;
 
-            var G_1 = a[1] * a[1] + alp_1 * alp_1 + bet_1 * bet_1 - a[2] * a[2];
-            var G_2 = a[1] * a[1] + alp_2 * alp_2 + bet_2 * bet_2 - a[2] * a[2];
+
+            var G_1 = Math.Pow(a[1], 2) + Math.Pow(alp_1, 2) + Math.Pow(bet_1, 2) - Math.Pow(a[2], 2);
+            var G_2 = Math.Pow(a[1], 2) + Math.Pow(alp_2, 2) + Math.Pow(bet_2, 2) - Math.Pow(a[2], 2);
 
             double[] th23 = [-F_1 + Math.Sqrt(E_1 * E_1 + F_1 * F_1 - G_1 * G_1) / (G_1 - E_1), -F_1 - Math.Sqrt(E_1 * E_1 + F_1 * F_1 - G_1 * G_1) / (G_1 - E_1),
                              -F_2 + Math.Sqrt(E_2 * E_2 + F_2 * F_2 - G_2 * G_2) / (G_2 - E_2), -F_2 - Math.Sqrt(E_2 * E_2 + F_2 * F_2 - G_2 * G_2) / (G_2 - E_2)];
@@ -272,17 +248,17 @@ namespace ur_kinematics
 
             //-----------------
 
-            var th3_1_a = alp_1 - a[2] * Math.Sin(theta2[0]);
-            var th3_1_b = bet_1 - a[2] * Math.Cos(theta2[0]);
+            var th3_1_a = alp_1 - a[1] * Math.Sin(theta2[0]);
+            var th3_1_b = bet_1 - a[1] * Math.Cos(theta2[0]);
 
-            var th3_2_a = alp_1 - a[2] * Math.Sin(theta2[1]);
-            var th3_2_b = bet_1 - a[2] * Math.Cos(theta2[1]);
+            var th3_2_a = alp_1 - a[1] * Math.Sin(theta2[1]);
+            var th3_2_b = bet_1 - a[1] * Math.Cos(theta2[1]);
 
-            var th3_3_a = alp_2 - a[2] * Math.Sin(theta2[2]);
-            var th3_3_b = bet_2 - a[2] * Math.Cos(theta2[2]);
+            var th3_3_a = alp_2 - a[1] * Math.Sin(theta2[2]);
+            var th3_3_b = bet_2 - a[1] * Math.Cos(theta2[2]);
 
-            var th3_4_a = alp_2 - a[2] * Math.Sin(theta2[3]);
-            var th3_4_b = bet_2 - a[2] * Math.Cos(theta2[3]);
+            var th3_4_a = alp_2 - a[1] * Math.Sin(theta2[3]);
+            var th3_4_b = bet_2 - a[1] * Math.Cos(theta2[3]);
 
             double[] theta3 = [Math.Atan2(th3_1_a, th3_1_b) - theta2[0], Math.Atan2(th3_2_a, th3_2_b) - theta2[1], Math.Atan2(th3_3_a, th3_3_b) - theta2[2], Math.Atan2(th3_4_a, th3_4_b) - theta2[3]];
 
