@@ -22,7 +22,7 @@ ur_ctrl_robot.Start();
 
 
 
-double[][] jointRot = rk.inverse_kin([-0.143, -0.435, 0.293, 1.059 * 180 / Math.PI, 3.1 * 180 / Math.PI, 0.6 * 180 / Math.PI]);
+double[][] jointRot = rk.inverse_kin([-0.144, -0.436, 0.215, 0.76, -2.7, -2.06]);
 UR_Control_Data.J_Orientation = [jointRot[0][0] * 180 / Math.PI, jointRot[1][0] * 180 / Math.PI, jointRot[2][0] * 180 / Math.PI, jointRot[3][0] * 180 / Math.PI, jointRot[4][0] * 180 / Math.PI, jointRot[5][0] * 180 / Math.PI];
 UR_Control_Data.acceleration = "10";
 UR_Control_Data.velocity = "200";

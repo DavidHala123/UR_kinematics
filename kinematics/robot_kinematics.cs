@@ -12,8 +12,10 @@ namespace ur_kinematics
 {
     public enum RobotType
     {
+        UR5,
         UR10,
-        UR20
+        UR20,
+        UR10e
     }
 
     internal class robot_kinematics
@@ -53,6 +55,24 @@ namespace ur_kinematics
                     this.alpha = new double[6] { Math.PI / 2, 0, 0, Math.PI / 2, -Math.PI / 2, 0 };
                     this.a = new double[6] { 0, -0.8620, -0.7287, 0, 0, 0 };
                     this.d = new double[6] { 0.2363, 0, 0, 0.2010, 0.1593, 0.1543 };
+                    break;
+                case RobotType.UR10:
+                    this.theta = new double[6] { 0, 0, 0, 0, 0, 0 };
+                    this.alpha = new double[6] { Math.PI / 2, 0, 0, Math.PI / 2, -Math.PI / 2, 0 };
+                    this.a = new double[6] { 0, -0.612, -0.5723, 0, 0, 0 };
+                    this.d = new double[6] { 0.1273, 0, 0, 0.163941, 0.1157, 0.0922 };
+                    break;
+                case RobotType.UR10e:
+                    this.theta = new double[6] { 0, 0, 0, 0, 0, 0 };
+                    this.alpha = new double[6] { Math.PI / 2, 0, 0, Math.PI / 2, -Math.PI / 2, 0 };
+                    this.a = new double[6] { 0, -0.6127, -0.57155, 0, 0, 0 };
+                    this.d = new double[6] { 0.1807, 0, 0, 0.17415, 0.11985, 0.11655 };
+                    break;
+                case RobotType.UR5:
+                    this.theta = new double[6] { 0, 0, 0, 0, 0, 0 };
+                    this.alpha = new double[6] { Math.PI / 2, 0, 0, Math.PI / 2, -Math.PI / 2, 0 };
+                    this.a = new double[6] { 0, -0.425, -0.39225, 0, 0, 0 };
+                    this.d = new double[6] { 0.089159, 0, 0, 0.10915, 0.09465, 0.0823 };
                     break;
             }
 
@@ -122,13 +142,6 @@ namespace ur_kinematics
             };
         }
 
-
-
-
-
-
-
-
         private double[] get_pose_vector(double[][] homog_t)
         {
             double rot_y = Math.Atan2(Math.Sqrt(Math.Pow(homog_t[2][1], 2) + Math.Pow(homog_t[2][0], 2)), -homog_t[2][0]);
@@ -136,10 +149,6 @@ namespace ur_kinematics
             double rot_z = Math.Atan2(homog_t[2][2] / Math.Cos(rot_y), homog_t[2][1] / Math.Cos(rot_y));
             return [homog_t[0][3], homog_t[1][3], homog_t[2][3], rot_x * 180 / Math.PI, rot_y * 180 / Math.PI, rot_z * 180 / Math.PI];
         }
-
-
-
-
 
         public double[] forward_kin(double[] jointsRot_deg)
         {
@@ -154,35 +163,16 @@ namespace ur_kinematics
 
             return get_pose_vector(matA);
         }
-
-        private double[][] getTranslation_homogT(double[][] homogT)
-        {
-            return new double[][]
-            {
-                new double[] { homogT[0][3] },
-                new double[] { homogT[1][3] },
-                new double[] { homogT[2][3] }
-            };
-        }
-
-        private double[][] getRotation_homogT(double[][] homogT)
-        {
-            return new double[][]
-            {
-                new double[] { homogT[0][0], homogT[0][1], homogT[0][2] },
-                new double[] { homogT[1][0], homogT[1][1], homogT[1][2] },
-                new double[] { homogT[2][0], homogT[2][1], homogT[2][2] }
-            };
-        }
-
-
         //https://people.ohio.edu/williams/html/PDF/UniversalRobotKinematics.pdf
 
         public double[][] inverse_kin(double[] endPoint)
         {
-            endPoint[3] = endPoint[3] * Math.PI / 180;
-            endPoint[4] = endPoint[4] * Math.PI / 180;
-            endPoint[5] = endPoint[5] * Math.PI / 180;
+            if (Math.Abs(endPoint[3]) > 3.14 || Math.Abs(endPoint[4]) > 3.14 || Math.Abs(endPoint[5]) > 3.14) 
+            {
+                endPoint[3] = endPoint[3] * Math.PI / 180;
+                endPoint[4] = endPoint[4] * Math.PI / 180;
+                endPoint[5] = endPoint[5] * Math.PI / 180;
+            }
 
             double[][] jointAngles = new double[theta.Length][];
 
