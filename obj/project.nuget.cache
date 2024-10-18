@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "kQAkWvR3QC4=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\hala\\source\\repos\\kinematics\\kinematics\\ur_kinematics.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\hala\\.nuget\\packages\\mitosoft.matrices\\1.0.5\\mitosoft.matrices.1.0.5.nupkg.sha512"
+  ],
+  "logs": []
+}
